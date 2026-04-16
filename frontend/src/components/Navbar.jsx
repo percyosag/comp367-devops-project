@@ -30,6 +30,7 @@ export default function Navbar() {
             {user.role === 'admin' && (
               <Link to="/admin">Admin</Link>
             )}
+            <Link to="/notifications">Notifications</Link>
             <Link to="/profile">Profile</Link>
             <span className="nav-user">Hi, {user.name}</span>
             <button onClick={handleLogout} className="nav-btn">Logout</button>

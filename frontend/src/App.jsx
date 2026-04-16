@@ -10,7 +10,8 @@ import MyEvents from './pages/MyEvents';
 import Profile from './pages/Profile';
 import EditEvent from './pages/EditEvent';           
 import ParticipantList from './pages/ParticipantList'; 
-import AdminDashboard from './pages/AdminDashboard';   
+import AdminDashboard from './pages/AdminDashboard';
+import NotificationsPage from './pages/NotificationsPage';
 
 export default function App() {
   return (
@@ -27,7 +28,8 @@ export default function App() {
         <Route path="/profile" element={<Profile />} />
         <Route path="/events/:id/edit" element={<EditEvent />} />               
         <Route path="/events/:id/participants" element={<ParticipantList />} /> 
-        <Route path="/admin" element={<AdminDashboard />} />                    
+        <Route path="/admin" element={<AdminDashboard />} />
+        <Route path="/notifications" element={<NotificationsPage />} />
       </Routes>
     </>
   );
