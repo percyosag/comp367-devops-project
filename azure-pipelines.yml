@@ -1,94 +1,116 @@
 trigger:
-- main
+  - main
 
 pool:
   vmImage: ubuntu-latest
 
 stages:
-- stage: Build
-  displayName: Build Stage
-  jobs:
-  - job: BuildJob
-    displayName: Build Job
-    steps:
-    - task: NodeTool@0
-      inputs:
-        versionSpec: '20.x'
-      displayName: 'Use Node.js'
+  - stage: Build
+    displayName: Build Stage
+    jobs:
+      - job: BuildJob
+        displayName: Build Job
+        steps:
+          - task: SonarCloudPrepare@3
+            inputs:
+              SonarCloud: 'SonarCloud-Connection'
+              organization: 'percyosag'
+              scannerMode: 'cli'
+              configMode: 'manual'
+              cliProjectKey: 'percyosag_comp367-devops-project'
+              cliProjectName: 'comp367-devops-project'
 
-    - script: |
-        cd backend
-        npm install
-        npm run build --if-present
-      displayName: 'Build backend'
+          - task: NodeTool@0
+            inputs:
+              versionSpec: '20.x'
+            displayName: 'Use Node.js'
 
-    - script: |
-        cd frontend
-        npm install
-        npm run build
-      displayName: 'Build frontend'
+          - script: |
+              cd backend
+              npm install
+              npm run build --if-present
+            displayName: 'Build backend'
 
-    - script: |
-        cd backend
-        npm test --if-present -- --coverage || true
-        cd ../frontend
-        npm test --if-present -- --coverage --watchAll=false || true
-      displayName: 'Run unit tests and generate coverage report'
+          - script: |
+              cd frontend
+              npm install
+              npm run build
+            displayName: 'Build frontend'
 
-    - script: |
-        mkdir -p $(Build.ArtifactStagingDirectory)
-        cp -R backend $(Build.ArtifactStagingDirectory)/backend
-        cp -R frontend $(Build.ArtifactStagingDirectory)/frontend
-      displayName: 'Prepare build artifacts'
+          - script: |
+              cd backend
+              npm test --if-present -- --coverage || true
+              cd ../frontend
+              npm test --if-present -- --coverage --watchAll=false || true
+            displayName: 'Run unit tests and generate coverage report'
 
-    - task: PublishBuildArtifacts@1
-      inputs:
-        PathtoPublish: '$(Build.ArtifactStagingDirectory)'
-        ArtifactName: 'drop'
-        publishLocation: 'Container'
-      displayName: 'Publish build artifact'
+          - task: SonarCloudAnalyze@3
+            displayName: 'Run SonarQube analysis'
 
-- stage: Deliver
-  displayName: Deliver Stage
-  dependsOn: Build
-  jobs:
-  - job: DeliverJob
-    steps:
-    - script: echo "Delivering artifact..."
-      displayName: 'Deliver artifact'
+          - task: SonarCloudPublish@3
+            inputs:
+              pollingTimeoutSec: '300'
+            displayName: 'Publish SonarQube quality gate result'
 
-- stage: Deploy_Dev
-  displayName: Deploy to Dev Env
-  dependsOn: Deliver
-  jobs:
-  - job: DevDeploy
-    steps:
-    - script: echo "Mock deployment to Dev environment"
-      displayName: 'Deploy to Dev'
+          - script: |
+              mkdir -p $(Build.ArtifactStagingDirectory)
+              cp -R backend $(Build.ArtifactStagingDirectory)/backend
+              cp -R frontend $(Build.ArtifactStagingDirectory)/frontend
+            displayName: 'Prepare build artifacts'
 
-- stage: Deploy_QAT
-  displayName: Deploy to QAT Env
-  dependsOn: Deploy_Dev
-  jobs:
-  - job: QATDeploy
-    steps:
-    - script: echo "Mock deployment to QAT environment"
-      displayName: 'Deploy to QAT'
+          - task: PublishBuildArtifacts@1
+            inputs:
+              PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+              ArtifactName: 'drop'
+              publishLocation: 'Container'
+            displayName: 'Publish build artifact'
 
-- stage: Deploy_Staging
-  displayName: Deploy to Staging Env
-  dependsOn: Deploy_QAT
-  jobs:
-  - job: StagingDeploy
-    steps:
-    - script: echo "Mock deployment to Staging environment"
-      displayName: 'Deploy to Staging'
+  - stage: Deliver
+    displayName: Deliver Stage
+    dependsOn: Build
+    jobs:
+      - job: DeliverJob
+        displayName: Deliver Job
+        steps:
+          - script: echo "Delivering artifact..."
+            displayName: 'Deliver artifact'
 
-- stage: Deploy_Production
-  displayName: Deploy to Production Env
-  dependsOn: Deploy_Staging
-  jobs:
-  - job: ProductionDeploy
-    steps:
-    - script: echo "Mock deployment to Production environment"
-      displayName: 'Deploy to Production'
+  - stage: Deploy_Dev
+    displayName: Deploy to Dev Env
+    dependsOn: Deliver
+    jobs:
+      - job: DevDeploy
+        displayName: Dev Deploy Job
+        steps:
+          - script: echo "Mock deployment to Dev environment"
+            displayName: 'Deploy to Dev'
+
+  - stage: Deploy_QAT
+    displayName: Deploy to QAT Env
+    dependsOn: Deploy_Dev
+    jobs:
+      - job: QATDeploy
+        displayName: QAT Deploy Job
+        steps:
+          - script: echo "Mock deployment to QAT environment"
+            displayName: 'Deploy to QAT'
+
+  - stage: Deploy_Staging
+    displayName: Deploy to Staging Env
+    dependsOn: Deploy_QAT
+    jobs:
+      - job: StagingDeploy
+        displayName: Staging Deploy Job
+        steps:
+          - script: echo "Mock deployment to Staging environment"
+            displayName: 'Deploy to Staging'
+
+  - stage: Deploy_Production
+    displayName: Deploy to Production Env
+    dependsOn: Deploy_Staging
+    jobs:
+      - job: ProductionDeploy
+        displayName: Production Deploy Job
+        steps:
+          - script: echo "Mock deployment to Production environment"
+            displayName: 'Deploy to Production'
