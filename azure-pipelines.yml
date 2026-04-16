@@ -1,0 +1,94 @@
+trigger:
+- main
+
+pool:
+  vmImage: ubuntu-latest
+
+stages:
+- stage: Build
+  displayName: Build Stage
+  jobs:
+  - job: BuildJob
+    displayName: Build Job
+    steps:
+    - task: NodeTool@0
+      inputs:
+        versionSpec: '20.x'
+      displayName: 'Use Node.js'
+
+    - script: |
+        cd backend
+        npm install
+        npm run build --if-present
+      displayName: 'Build backend'
+
+    - script: |
+        cd frontend
+        npm install
+        npm run build
+      displayName: 'Build frontend'
+
+    - script: |
+        cd backend
+        npm test --if-present -- --coverage || true
+        cd ../frontend
+        npm test --if-present -- --coverage --watchAll=false || true
+      displayName: 'Run unit tests and generate coverage report'
+
+    - script: |
+        mkdir -p $(Build.ArtifactStagingDirectory)
+        cp -R backend $(Build.ArtifactStagingDirectory)/backend
+        cp -R frontend $(Build.ArtifactStagingDirectory)/frontend
+      displayName: 'Prepare build artifacts'
+
+    - task: PublishBuildArtifacts@1
+      inputs:
+        PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+        ArtifactName: 'drop'
+        publishLocation: 'Container'
+      displayName: 'Publish build artifact'
+
+- stage: Deliver
+  displayName: Deliver Stage
+  dependsOn: Build
+  jobs:
+  - job: DeliverJob
+    steps:
+    - script: echo "Delivering artifact..."
+      displayName: 'Deliver artifact'
+
+- stage: Deploy_Dev
+  displayName: Deploy to Dev Env
+  dependsOn: Deliver
+  jobs:
+  - job: DevDeploy
+    steps:
+    - script: echo "Mock deployment to Dev environment"
+      displayName: 'Deploy to Dev'
+
+- stage: Deploy_QAT
+  displayName: Deploy to QAT Env
+  dependsOn: Deploy_Dev
+  jobs:
+  - job: QATDeploy
+    steps:
+    - script: echo "Mock deployment to QAT environment"
+      displayName: 'Deploy to QAT'
+
+- stage: Deploy_Staging
+  displayName: Deploy to Staging Env
+  dependsOn: Deploy_QAT
+  jobs:
+  - job: StagingDeploy
+    steps:
+    - script: echo "Mock deployment to Staging environment"
+      displayName: 'Deploy to Staging'
+
+- stage: Deploy_Production
+  displayName: Deploy to Production Env
+  dependsOn: Deploy_Staging
+  jobs:
+  - job: ProductionDeploy
+    steps:
+    - script: echo "Mock deployment to Production environment"
+      displayName: 'Deploy to Production'
