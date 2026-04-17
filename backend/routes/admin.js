@@ -6,7 +6,6 @@ const Event = require("../models/Event");
 const auth = require("../middleware/auth");
 const adminOnly = require("../middleware/admin");
 
-
 router.use(auth, adminOnly);
 
 router.get("/users", async (req, res) => {
@@ -24,11 +23,15 @@ router.patch("/users/:id/deactivate", async (req, res) => {
     if (!user) return res.status(404).json({ message: "User not found." });
 
     if (user.role === "admin") {
-      return res.status(403).json({ message: "Cannot deactivate another admin account." });
+      return res
+        .status(403)
+        .json({ message: "Cannot deactivate another admin account." });
     }
 
     if (user.isActive === false) {
-      return res.status(400).json({ message: "User account is already deactivated." });
+      return res
+        .status(400)
+        .json({ message: "User account is already deactivated." });
     }
 
     user.isActive = false;
@@ -45,7 +48,9 @@ router.patch("/users/:id/reactivate", async (req, res) => {
     if (!user) return res.status(404).json({ message: "User not found." });
 
     if (user.isActive !== false) {
-      return res.status(400).json({ message: "User account is already active." });
+      return res
+        .status(400)
+        .json({ message: "User account is already active." });
     }
 
     user.isActive = true;
@@ -56,26 +61,28 @@ router.patch("/users/:id/reactivate", async (req, res) => {
   }
 });
 
-
 router.delete("/users/:id", async (req, res) => {
   try {
     const user = await User.findById(req.params.id);
     if (!user) return res.status(404).json({ message: "User not found." });
 
     if (user.role === "admin") {
-      return res.status(403).json({ message: "Cannot delete another admin account." });
+      return res
+        .status(403)
+        .json({ message: "Cannot delete another admin account." });
     }
 
     await Registration.deleteMany({ user: req.params.id });
     await Event.deleteMany({ organizer: req.params.id });
     await user.deleteOne();
 
-    res.json({ message: `User ${user.name} and all their data have been permanently deleted.` });
+    res.json({
+      message: `User ${user.name} and all their data have been permanently deleted.`,
+    });
   } catch (err) {
     res.status(500).json({ message: "Server error." });
   }
 });
-
 
 router.post("/test-reminders", async (req, res) => {
   try {
@@ -86,7 +93,7 @@ router.post("/test-reminders", async (req, res) => {
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
     const start = new Date(tomorrow.setHours(0, 0, 0, 0));
-    const end   = new Date(tomorrow.setHours(23, 59, 59, 999));
+    const end = new Date(tomorrow.setHours(23, 59, 59, 999));
 
     const events = await Event.find({ date: { $gte: start, $lte: end } });
 
@@ -131,6 +138,26 @@ router.post("/test-reminders", async (req, res) => {
     });
   } catch (err) {
     res.status(500).json({ message: err.message });
+  }
+});
+
+router.get("/stats", async (req, res) => {
+  try {
+    const totalUsers = await User.countDocuments();
+    const activeUsers = await User.countDocuments({ isActive: true });
+    const inactiveUsers = await User.countDocuments({ isActive: false });
+    const totalEvents = await Event.countDocuments();
+    const totalRegistrations = await Registration.countDocuments();
+
+    res.json({
+      totalUsers,
+      activeUsers,
+      inactiveUsers,
+      totalEvents,
+      totalRegistrations,
+    });
+  } catch (err) {
+    res.status(500).json({ message: "Server error." });
   }
 });
 
