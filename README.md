@@ -1,40 +1,45 @@
-# comp313-002-Team-6-W25-
+# COMP367 – DevOps Implementation (Group Project)
 
-A full-stack web platform that connects community members with events, enabling users to discover and register, while giving organizers the ability to create, manage, and monitor events.
+This project demonstrates the implementation of a full-stack application integrated with modern DevOps practices, including CI/CD pipelines, code quality analysis, and collaborative development workflows.
 
-Frontend: React + Vite
-Backend: Node.js + Express
-Database: MongoDB Atlas
-API Testing: Postman
+The platform connects community members with events, allowing users to discover and register for events while enabling organizers to create and manage them.
 
-### 1. Environment Configuration
+---
+
+## Tech Stack
+
+- **Frontend:** React + Vite
+- **Backend:** Node.js + Express
+- **Database:** MongoDB Atlas
+- **CI/CD:** Azure DevOps Pipelines
+- **Code Quality:** SonarCloud
+- **API Testing:** Postman
+
+---
+
+## DevOps Features Implemented
+
+- CI pipeline using **Azure Pipelines (YAML)**
+- Automated build and test stages
+- Multi-stage deployment pipeline:
+  - Dev
+  - QAT
+  - Staging
+  - Production (mock deployments)
+- Code quality analysis using **SonarCloud**
+- GitHub integration using **Personal Access Token (PAT)**
+- Pull request workflow with code reviews
+- Issue tracking and resolution
+
+---
+
+## Environment Configuration
 
 Create a `.env` file in the `backend/` folder.  
-⚠️ **Do not commit this file to GitHub.**
+ **Do not commit this file to GitHub.**
 
 ```env
 PORT=5000
 MONGO_URI=your_mongodb_atlas_connection_string
 JWT_SECRET=your_secret_key_for_auth
 ```
-
----
-
-### 2. API Endpoints (Current Progress)
-
-The following routes have been implemented and tested using **Postman**.
-
-- **POST `/api/events`**  
-  Creates a new community event.
-
-- **GET `/api/events`**  
-  Retrieves all available events.
-
-- **POST `/api/registrations`**  
-  Registers a user for an event while enforcing event capacity limits.
-
-### 3. Key Features Implemented
-
-- **Capacity Validation:** Prevents registration if the event is full (User Story 7).
-- **Duplicate Prevention:** Users cannot register for the same event multiple times.
-- **Relational Data:** Registrations are linked to **Event IDs** and **User IDs**.
