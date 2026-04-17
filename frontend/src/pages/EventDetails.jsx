@@ -70,6 +70,15 @@ export default function EventDetails() {
   const isFull = spotsLeft <= 0;
   const isPast = new Date(event.date) < new Date().setHours(0, 0, 0, 0);
 
+  let registerButtonLabel;
+  if (registering) {
+    registerButtonLabel = 'Processing...';
+  } else if (isFull) {
+    registerButtonLabel = 'Join Waitlist';
+  } else {
+    registerButtonLabel = 'Register for Event';
+  }
+
   return (
     <div className="form-container">
       <h2>{event.title}</h2>
@@ -102,7 +111,7 @@ export default function EventDetails() {
           <p className="error-msg">This event has already taken place.</p>
         ) : (
           <button onClick={handleRegister} disabled={registering}>
-            {registering ? 'Processing...' : isFull ? 'Join Waitlist' : 'Register for Event'}
+            {registerButtonLabel}
           </button>
         )
       )}
