@@ -35,9 +35,10 @@ export default function NotificationsPage() {
 
   async function handleMarkRead(notificationId) {
     setActionMsg('');
+    if (!notificationId || typeof notificationId !== 'string') return;
     try {
       await axios.patch(
-        `${API_URL}/notifications/${notificationId}/read`,
+        `${API_URL}/notifications/${encodeURIComponent(notificationId)}/read`,
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
