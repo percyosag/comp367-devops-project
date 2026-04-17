@@ -15,6 +15,7 @@ export default function EventDetails() {
   const [regMsg, setRegMsg] = useState('');
   const [regSuccess, setRegSuccess] = useState(false);
   const [registering, setRegistering] = useState(false);
+  const [alreadyRegistered, setAlreadyRegistered] = useState(false);
 
   useEffect(() => {
     axios
@@ -23,6 +24,21 @@ export default function EventDetails() {
       .catch(() => setError('Failed to load event details.'))
       .finally(() => setLoading(false));
   }, [id]);
+
+  useEffect(() => {
+    if (!token || user?.role !== 'community_member') return;
+    axios
+      .get(`${API_URL}/registrations`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then((res) => {
+        const match = res.data.find(
+          (r) => r.event?._id === id && r.status !== 'cancelled'
+        );
+        if (match) setAlreadyRegistered(true);
+      })
+      .catch(() => {});
+  }, [id, token, user]);
 
   async function handleRegister() {
     if (!token) { navigate('/login'); return; }
@@ -80,7 +96,9 @@ export default function EventDetails() {
       )}
 
       {user?.role === 'community_member' && !regSuccess && (
-        isPast ? (
+        alreadyRegistered ? (
+          <p className="success-msg">Already Registered</p>
+        ) : isPast ? (
           <p className="error-msg">This event has already taken place.</p>
         ) : (
           <button onClick={handleRegister} disabled={registering}>
